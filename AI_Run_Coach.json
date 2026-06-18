@@ -1,0 +1,347 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1IbN3z5ZAAK8Adnu3m3WFjwAWmPGFIX7vHywwvt4iT4c/edit?resourcekey=&gid=1307249269#gid=1307249269",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1307249269,
+          "mode": "list",
+          "cachedResultName": "Liczba odpowiedzi: 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1IbN3z5ZAAK8Adnu3m3WFjwAWmPGFIX7vHywwvt4iT4c/edit#gid=1307249269"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        32,
+        32
+      ],
+      "id": "e95872ef-4856-49eb-8e64-7425a83454b4",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "tJlHm8xdnjnx8iC0",
+          "name": "Google Sheets Trigger OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1kXWtl4pv3ONMSDgNCXQVFAAhZy55yDWw",
+          "mode": "list",
+          "cachedResultName": "Baza_Wiedzy_Trening_Dieta.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/1kXWtl4pv3ONMSDgNCXQVFAAhZy55yDWw/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        208,
+        32
+      ],
+      "id": "4636962e-b67e-4271-a6a5-e4d1a4508086",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "bPbRTKWrtz5ct5Ow",
+          "name": "Google Drive OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        32
+      ],
+      "id": "741524ae-d0b0-41d1-b92c-a98a3a215a7a",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Jesteś zaawansowanym asystentem biegowym i dietetycznym.\nTwoim zadaniem jest ułożenie ustrukturyzowanego planu treningowego wraz z zapotrzebowaniem kalorycznym i makroskładnikami na KAŻDY DZIEŃ wskazanego okresu, bazując WYŁĄCZNIE na udostępnionej bazie wiedzy.\n\nDane wejściowe zawodnika:\nData wypełnienia ankiety: {{ $('Google Sheets Trigger').item.json['Sygnatura czasowa'] }}\nWiek: {{ $('Google Sheets Trigger').item.json['Twój wiek '] }}\nPłeć: {{ $('Google Sheets Trigger').item.json['  Płeć  '] }}\nWzrost: {{ $('Google Sheets Trigger').item.json['Wrost (cm)'] }} cm\nWaga: {{ $('Google Sheets Trigger').item.json['  Aktualna waga (kg)  '] }} kg\nTygodniowa objętość z ostatniego miesiąca: {{ $('Google Sheets Trigger').item.json['Obecna objętość (Ile kilometrów średnio biegałeś/aś w tygodniu przez ostatni miesiąc?) '] }} km\nCel: {{ $('Google Sheets Trigger').item.json['Do jakiego dystansu/celu chcesz się przygotować?  '] }}\nDostępne dni treningowe: {{ $('Google Sheets Trigger').item.json['Ile dni w tygodniu jesteś w stanie realnie trenować?  '] }}\nDługość planu: {{ $('Google Sheets Trigger').item.json['Na jaki okres ma być przygotowany plan (tygodni)'] }} tygodni\nStan zdrowia / Kontuzje: {{ $('Google Sheets Trigger').item.json['Czy odczuwasz obecnie jakiś ból podczas biegania, jesteś przeziębiony/a lub zmagasz się z kontuzją?  '] }}\n\nTWARDE ZASADY (MUSISZ ICH PRZESTRZEGAĆ):\n\n1. ZDROWIE: Jeśli pole \"Stan zdrowia\" zawiera opis kontuzji, wygeneruj błąd i zakończ.\n\n2. DŁUGOŚĆ PLANU I DATY (KRYTYCZNE): Tygodnie * 7 = liczba dni (obiektów JSON). Używaj formatu YYYY-MM-DD zaczynając dzień po dacie ankiety.\n\n3. DIETA I KALORIE: \nBMR = Waga * 22. TDEE = BMR * współczynnik (1.6 dni wolne do 1.9 ciężkie dni). Rozkład: Białko ~2g/kg, Tłuszcze 25%, reszta Węglowodany. \n\n4. STRUKTURA TRENINGU BIEGOWEGO (ZAPOBIEGANIE BŁĘDOM):\n- HIERARCHIA DYSTANSÓW W TYGODNIU (KRYTYCZNE): \"Long Run\" MUSI absolutnie mieć NAJWYŻSZĄ wartość dystansu w każdym tygodniu. \"Easy Run\" / \"Rozbieganie\" musi być ZNACZNIE krótsze (np. 5 do max 12 km). \n- LIMIT POJEDYNCZEGO BIEGU (HARD CAP): Żaden, absolutnie żaden pojedynczy trening w całym planie nie może przekroczyć 35 km (chyba że cel z ankiety to wyraźnie Ultramaraton). Zabraniam generowania treningów po 70 km!\n- ZDROWA PROGRESJA: Zwiększaj CAŁKOWITĄ objętość tygodniową o max 10% co tydzień. Gdy suma tygodniowa osiągnie zdrowy, maksymalny pułap pod dany Cel (np. max 60-75 km/tydzień dla maratończyka amatora), przestań ją zwiększać i utrzymaj tę wartość aż do fazy Taperingu. \n- TAPERING: Ostatnie 1-2 tygodnie to ucięcie kilometrażu.\n\n5. POLE \"UWAGI\" (OBOWIĄZKOWE):\nW kluczu \"Uwagi\" absolutnie dla KAŻDEGO dnia musisz wpisać krótką poradę trenerską lub dietetyczną. Zabraniam zostawiać tego pola pustego! Przykłady: \"Zjedz żel na 15 km\", \"Dziś dzień pełnej regeneracji, zjedz białko\", \"Zwiększ podaż węglowodanów przed jutrzejszym Long Runem\", \"Pilnuj strefy tętna\".\n\n=== BAZA WIEDZY ===\n{{ $json.text }}\n\nFORMAT WYJŚCIOWY (KRYTYCZNE):\nZapomnij o poprzednim formatowaniu. Wygeneruj harmonogram w formacie czystego JSON. Nie pisz absolutnie żadnego tekstu przed ani po kodzie. Zwróć WYŁĄCZNIE tablicę (array) obiektów.\nKlucze: \"Dzien\", \"Typ_Treningu\", \"Dystans\", \"Intensywnosc\", \"Kalorie\", \"Bialko_g\", \"Weglowodany_g\", \"Tłuszcze_g\", \"Uwagi\"",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        512,
+        32
+      ],
+      "id": "45208905-a416-4f66-b678-06763aabb9ea",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        192
+      ],
+      "id": "a9e38f84-fd62-4d8e-9675-f40bde6d0208",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "H5b6M83bEtrNHGCI",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "try {\n  let rawText = $('Basic LLM Chain').first().json.text;\n  rawText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();\n  let plan = JSON.parse(rawText);\n  return plan.map(dzien => ({ json: dzien }));\n} catch (error) {\n  throw new Error(\"BŁĄD KODU: \" + error.message);\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        32
+      ],
+      "id": "a98f2da8-308e-4056-97de-175d889f3407",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "documentId": {
+          "__rl": true,
+          "value": "1Qe3aDbtyM3xs0m7HYIvedRMo0p7ZSRBxZvWokdhfKZw",
+          "mode": "list",
+          "cachedResultName": "Baza Gotowych Planów AI",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Qe3aDbtyM3xs0m7HYIvedRMo0p7ZSRBxZvWokdhfKZw/edit?usp=drivesdk"
+        },
+        "title": "={{ $('Google Sheets Trigger').item.json['Sygnatura czasowa'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        768,
+        32
+      ],
+      "id": "2890a30e-0118-4a7c-84fe-8d03726bb92d",
+      "name": "Create sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KbEbKZucjhc3oKoE",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Qe3aDbtyM3xs0m7HYIvedRMo0p7ZSRBxZvWokdhfKZw",
+          "mode": "list",
+          "cachedResultName": "Baza Gotowych Planów AI",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Qe3aDbtyM3xs0m7HYIvedRMo0p7ZSRBxZvWokdhfKZw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Create sheet').last().json.sheetId }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Dzien",
+              "displayName": "Dzien",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Typ_Treningu",
+              "displayName": "Typ_Treningu",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Dystans",
+              "displayName": "Dystans",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Intensywnosc",
+              "displayName": "Intensywnosc",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Uwagi",
+              "displayName": "Uwagi",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1072,
+        32
+      ],
+      "id": "1f770e3a-6556-45f5-95ee-b189f1b01492",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KbEbKZucjhc3oKoE",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Create sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "2f3f7300-0c6f-4d05-80c3-436b6eac4b66",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "36a92616448adf71eb0588c1567c6b60a2f83f790c1f757cd177bc23a5be0fe0"
+  },
+  "nodeGroups": [],
+  "id": "d8nr8y5pGQnWCeLJ",
+  "tags": []
+}
