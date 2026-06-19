@@ -18,7 +18,14 @@ Projekt eliminuje potrzebę ręcznego przeliczania objętości treningowej i zap
 
 ## 🚀 Instrukcja uruchomienia (Krok po kroku)
 
-Aby uruchomić ten projekt u siebie, wystarczy zaimportować gotowy plik przepływu (Workflow) i podpiąć własne konta.
+## Opcja 1: Chcę otrzymać plan treningowy (Dla biegaczy)
+Jeśli jesteś zawodnikiem i chcesz uzyskać spersonalizowany plan:
+
+1. Wypełnij formularz: Wejdź w link ankiety: https://forms.gle/h9oLonjznG64Xbu9A i wypełnij wszystkie dane (wiek, waga, cel, kontuzje).
+2. Poczekaj na generowanie: Po kliknięciu "Wyślij", nasz system AI potrzebuje około 4–5 minut na przeanalizowanie Twoich parametrów, wyliczenie bezpiecznego progresu i ułożenie diety.
+3. Sprawdź wynik: Po tym czasie wejdź w link do udostępnionego arkusza: https://docs.google.com/spreadsheets/d/1Qe3aDbtyM3xs0m7HYIvedRMo0p7ZSRBxZvWokdhfKZw/edit?usp=sharing. W nowej zakładce znajdziesz swój kompletny plan treningowy i dietetyczny na cały wybrany okres.
+
+## Opcja 2: Chcę zbudować własny system (Dla programistów/automatyków)
 
 ### 1. Wymagania wstępne
 * Zainstalowane środowisko **n8n** (lokalnie przez Docker/npm lub darmowe konto n8n Cloud).
