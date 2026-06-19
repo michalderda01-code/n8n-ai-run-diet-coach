@@ -103,12 +103,12 @@ If you are an athlete and want to receive a personalized plan:
 3. In the top right corner, click the three dots icon `...` -> **Import from File**.
 4. Select the downloaded JSON file. The node map will appear on your screen.
 
-3. Connection Configuration (Credentials)
+### 3. Connection Configuration (Credentials)
 You must authenticate the nodes with your data so n8n can access your files:
 
 * **Google Sheets Trigger:** Connect your Google account and point to the spreadsheet file where survey responses are collected.
 * **Google Drive (Download file):** Connect your Google account and paste the File ID of your PDF knowledge base (the ID can be found in the file's sharing link).
-* **Google Gemini Chat Model:** Create new credentials and paste your API key from Google AI Studio. Ensure the model is set to gemini-1.5-flash.
+* **Google Gemini Chat Model:** Create new credentials and paste your API key from Google AI Studio. Ensure the model is set to `gemini-2.5-flash`.
 * **Google Sheets (Append Row):** Point to the target spreadsheet where n8n should create new plans.
 
 4. Activation
@@ -117,11 +117,11 @@ Once all nodes glow green after clicking "Execute Step," switch the toggle in th
 ---
 
 ## 📖 Project Documentation (Assumptions & Reflection)
-##1. Problem
+### 1. Problem
 Creating personalized training and diet plans is pure, repetitive math that consumes a lot of time. Designing a professional 14-week plan requires generating and scheduling exactly 98 training days. Manually calculating safe mileage progression (10-15% week-over-week) and adjusting caloric needs for each of those 98 days takes a coach an average of 2-3 hours.
 With only 10 clients, this adds up to 20-30 hours of "paperwork." Pre-made plans from the internet don't solve the problem because they lack variables (injuries, exact weight, weekly availability). This project solves this, reducing the time for creating a mathematically perfect plan from several hours to just **4–5 minutes** of automated background work.
 
-## 2. Tools
+### 2. Tools
 The system was built with a focus on cost minimization and maximum flexibility:
 
 * **Google Forms / Google Sheets:** As a free interface and database. They have native support for triggers in n8n.
@@ -130,7 +130,7 @@ The system was built with a focus on cost minimization and maximum flexibility:
 * **Google Gemini 2.5 Flash (LLM):** A model designed for processing large context windows (RAG on PDFs), free for basic use, and more resilient to overload errors than preview versions.
 * **JavaScript (Custom Code):** Used to write `try...catch` blocks and parsing functions for the raw LLM response, making the system immune to "formatting hallucinations."
 
-## 3. Reflection and Challenges
+### 3. Reflection and Challenges
 Building the system revealed the limitations of Large Language Models in environments requiring strict mathematical logic.
 * Prompt Engineering: The AI initially lost track of the calendar and added mileage chaotically. The solution was rigorous Prompt Engineering (forcing the model to think in 7-day blocks, setting a 35 km per workout limit, and hard-coding BMR equations).
 * API Stability: The second challenge was API stability. Under high loads (generating JSON with 98 objects and reading dozens of PDF pages), servers rejected requests (503 error). Implementing a Retry On Fail mechanism stabilized the flow, proving that in automation, the "happy path" is just the beginning—handling errors is the key to success.
