@@ -10,7 +10,7 @@ Projekt eliminuje potrzebę ręcznego przeliczania objętości treningowej i zap
 
 1. **Wyzwalacz (Trigger):** Biegacz wypełnia ankietę w Google Forms (waga, wiek, staż, dostępność, cel). Nowy wiersz wpada do Google Sheets.
 2. **Pobranie Bazy Wiedzy:** Węzeł n8n natychmiast łączy się z Google Drive i pobiera podręcznik PDF (metodyka treningowa + fundamenty dietetyczne).
-3. **Analiza AI (RAG):** Model Google Gemini 1.5 Flash analizuje ankietę oraz PDF. Wylicza BMR, rozkład makroskładników, programuje tygodniowy kilometraż z bezpieczną progresją (max 10% co tydzień) i uwzględnia fazę taperingu.
+3. **Analiza AI (RAG):** Model Google Gemini 2.5 Flash analizuje ankietę oraz PDF. Wylicza BMR, rozkład makroskładników, programuje tygodniowy kilometraż z bezpieczną progresją (max 10% co tydzień) i uwzględnia fazę taperingu.
 4. **Czyszczenie Danych (JS):** Skrypt JavaScript "wyłapuje" i czyści surową odpowiedź modelu AI do czystej postaci JSON (Array of Objects).
 5. **Zapis do Arkusza:** n8n automatycznie tworzy nową zakładkę w docelowym Google Sheets i wkleja gotowy, np. 98-dniowy plan dzień po dniu.
 
@@ -79,7 +79,7 @@ This project eliminates the need for manual calculations of training volume and 
 
 1. **Trigger:** A runner fills out a Google Form (weight, age, experience, availability, goal). New data enters Google Sheets.
 2. **Knowledge Base Retrieval:** The n8n node immediately connects to Google Drive and retrieves a PDF manual (training methodology + dietary foundations).
-3. **AI Analysis (RAG):** The Google Gemini 1.5 Flash model analyzes the survey and the PDF. It calculates BMR, macronutrient distribution, programs weekly mileage with safe progression (max 10% per week), and accounts for tapering phases.
+3. **AI Analysis (RAG):** The Google Gemini 2.5 Flash model analyzes the survey and the PDF. It calculates BMR, macronutrient distribution, programs weekly mileage with safe progression (max 10% per week), and accounts for tapering phases.
 4. **Data Sanitization (JS):** A JavaScript snippet catches and cleans the raw AI response into a clean JSON format (Array of Objects).
 5. **Sheet Update:** n8n automatically creates a new tab in the target Google Sheet and pastes the complete, e.g., 98-day plan, day by day.
 
