@@ -111,8 +111,8 @@ You must authenticate the nodes with your data so n8n can access your files:
 * **Google Gemini Chat Model:** Create new credentials and paste your API key from Google AI Studio. Ensure the model is set to `gemini-2.5-flash`.
 * **Google Sheets (Append Row):** Point to the target spreadsheet where n8n should create new plans.
 
-4. Activation
-Once all nodes glow green after clicking "Execute Step," switch the toggle in the top right from Inactive to Active. From this moment on, the system runs automatically in the background.
+### 4. Activation
+Once all nodes glow green after clicking `Execute Step,` switch the toggle in the top right from Inactive to Active. From this moment on, the system runs automatically in the background.
 
 ---
 
