@@ -1,18 +1,52 @@
 # 🏃‍♂️ AI Run & Diet Coach (n8n Automation)
 
-Zautomatyzowany system do generowania spersonalizowanych, długoterminowych planów treningowych i dietetycznych dla biegaczy, oparty na architekturze RAG (Retrieval-Augmented Generation) w środowisku n8n.
+Zautomatyzowane narzędzie **dla trenerów biegowych**, służące do błyskawicznego generowania spersonalizowanych, długoterminowych planów treningowych i dietetycznych dla podopiecznych. System oparty jest na architekturze RAG (Retrieval-Augmented Generation) w środowisku n8n.
+
+Dzięki temu rozwiązaniu trener nie musi spędzać godzin na żmudnych obliczeniach objętości treningowej i zapotrzebowania kalorycznego w arkuszach kalkulacyjnych. Wygenerowanie kompletnego, bezpiecznego planu dla jednego zawodnika zajmuje teraz **około 5 minut**, automatycznie działając w tle.
 
 ---
 
 ## ⚙️ Jak to działa (Architektura)
 
-Projekt eliminuje potrzebę ręcznego przeliczania objętości treningowej i zapotrzebowania kalorycznego. Cały przepływ jest w pełni zautomatyzowany:
+Cały przepływ jest w pełni zautomatyzowany i zintegrowany z narzędziami Google:
 
-1. **Wyzwalacz (Trigger):** Biegacz wypełnia ankietę w Google Forms (waga, wiek, staż, dostępność, cel). Nowy wiersz wpada do Google Sheets.
-2. **Pobranie Bazy Wiedzy:** Węzeł n8n natychmiast łączy się z Google Drive i pobiera podręcznik PDF (metodyka treningowa + fundamenty dietetyczne).
-3. **Analiza AI (RAG):** Model Google Gemini 2.5 Flash analizuje ankietę oraz PDF. Wylicza BMR, rozkład makroskładników, programuje tygodniowy kilometraż z bezpieczną progresją (max 10% co tydzień) i uwzględnia fazę taperingu.
+1. **Wyzwalacz (Trigger):** Podopieczny wypełnia ankietę w Google Forms (waga, wiek, staż, dostępność, cel, kontuzje). Nowy wiersz trafia do Google Sheets.
+2. **Pobranie Bazy Wiedzy:** Węzeł n8n natychmiast łączy się z Google Drive i pobiera podręcznik PDF (wiedza trenera: metodyka treningowa + fundamenty dietetyczne).
+3. **Analiza AI (RAG):** Model Google Gemini 2.5 Flash analizuje ankietę oraz PDF. Wylicza BMR, rozkład makroskładników, programuje tygodniowy kilometraż z bezpieczną progresją (max 10% co tydzień) i układa strukturę makrocyklu.
 4. **Czyszczenie Danych (JS):** Skrypt JavaScript "wyłapuje" i czyści surową odpowiedź modelu AI do czystej postaci JSON (Array of Objects).
-5. **Zapis do Arkusza:** n8n automatycznie tworzy nową zakładkę w docelowym Google Sheets i wkleja gotowy, np. 98-dniowy plan dzień po dniu.
+5. **Zapis do Arkusza:** n8n automatycznie tworzy nową zakładkę w docelowym Google Sheets i wkleja gotowy plan na każdy dzień.
+
+---
+
+## 🛠️ Dokumentacja Utrzymaniowa (Maintenance)
+
+### 1. Jak dodać nowy dokument / dane do systemu
+Aby zaktualizować bazę wiedzy (np. nowa metodyka treningowa, inne wytyczne dietetyczne):
+* **Opcja A (Zalecana):** Nadpisz istniejący plik PDF na swoim dysku Google Drive (użyj opcji "Zarządzaj wersjami" i wgraj nowy plik). Dzięki temu ID pliku pozostanie bez zmian i system będzie działał płynnie.
+* **Opcja B:** Wgraj nowy plik na Google Drive, skopiuj jego nowe "File ID" z linku udostępniania i wklej je w węźle `Google Drive (Download file)` w panelu n8n.
+
+### 2. Jak zmienić konfigurację (prompt, model, źródła)
+Wszelkie modyfikacje logiki odbywają się bezpośrednio w środowisku n8n:
+* **Zmiana Promptu (Instrukcji dla AI):** Otwórz węzeł `Google Gemini Chat Model`. Przejdź do pola `System Message` lub `Message`, aby zmodyfikować zasady wyliczania planu, limity kilometrażu czy język odpowiedzi.
+* **Zmiana Modelu:** W tym samym węźle `Google Gemini`, w sekcji "Model", możesz z listy rozwijanej wybrać inną wersję (obecnie zoptymalizowane pod `gemini-2.5-flash`, co gwarantuje najlepszy stosunek szybkości do jakości; w razie potrzeby głębszej analizy można testować wyższe modele z rodziny Gemini).
+* **Zmiana Źródeł:** Aby zmienić arkusze wejściowe/wyjściowe, wejdź w odpowiednie węzły `Google Sheets` i wskaż nowe pliki z Twojego połączonego dysku Google.
+
+### 3. Co robić, gdy coś nie działa (troubleshooting)
+* **Problem: Nowe ankiety nie uruchamiają automatyzacji.**
+  * *Rozwiązanie:* Sprawdź węzeł `Google Sheets Trigger`. Upewnij się, że autoryzacja (Credential) Google nie wygasła. W razie potrzeby zaloguj się ponownie (Re-authenticate).
+* **Problem: Błąd parsowania w węźle JavaScript (JSON error).**
+  * *Rozwiązanie:* Model AI wygenerował odpowiedź w złym formacie (tzw. halucynacja formatowania). Upewnij się, że włączona jest opcja "Retry On Fail" w ustawieniach węzła Gemini. Sprawdź w logach, czy prompt nie jest zbyt restrykcyjny.
+* **Problem: Błąd API 503 (Overload / Rate Limit).**
+  * *Rozwiązanie:* Serwery Google Gemini odrzuciły zapytanie z powodu zbyt dużego obciążenia na darmowym kluczu. System powinien ponowić próbę automatycznie, jeśli włączono mechanizm Retry. Przy skalowaniu rozważ przejście na płatny pakiet (Pay-as-you-go).
+
+### 4. Kto jest właścicielem systemu, jak go skontaktować
+* **Właściciel Systemu:** Michał Derda
+* **Kontakt (Support):** michal.derda11@interia.pl
+* W przypadku awarii krytycznych lub chęci wdrożenia nowych funkcji (np. integracji z systemami zewnętrznymi), proszę o bezpośredni kontakt powyższymi kanałami.
+
+### 5. Ograniczenia i znane problemy
+* **Halucynacje matematyczne LLM:** Modele językowe nie są kalkulatorami. Mimo rygorystycznych promptów i wydajności modelu Gemini 2.5 Flash, przy bardzo długich planach AI może sporadycznie pomylić się w sumowaniu tygodniowego kilometrażu. Wymaga to okresowej, szybkiej weryfikacji wygenerowanego arkusza przez trenera.
+* **Brak zaawansowanych wyliczeń tempa:** Obecna wersja operuje głównie na objętości (kilometraż i czas). Precyzyjne treningi w zadanym tempie (np. wyliczanie tempa progowego czy interwałów na podstawie życiówek) są dopiero planowane w przyszłych aktualizacjach.
 
 ---
 
@@ -72,16 +106,58 @@ Budowa systemu ujawniła ograniczenia Dużych Modeli Językowych w środowisku w
 ---
 
 # 🏃‍♂️ AI Run & Diet Coach (n8n Automation)
-An automated system for generating personalized, long-term training and diet plans for runners, based on RAG (Retrieval-Augmented Generation) architecture within the n8n environment.
+
+An automated tool **for running coaches**, designed to instantly generate personalized, long-term training and diet plans for their athletes. The system is based on RAG (Retrieval-Augmented Generation) architecture within the n8n environment.
+
+Thanks to this solution, coaches no longer have to spend hours on tedious calculations of training volume and caloric requirements in spreadsheets. Generating a complete, safe plan for one athlete now takes **about 5 minutes**, working automatically in the background.
+
+---
 
 ## ⚙️ How it Works (Architecture)
-This project eliminates the need for manual calculations of training volume and caloric requirements. The entire workflow is fully automated:
 
-1. **Trigger:** A runner fills out a Google Form (weight, age, experience, availability, goal). New data enters Google Sheets.
-2. **Knowledge Base Retrieval:** The n8n node immediately connects to Google Drive and retrieves a PDF manual (training methodology + dietary foundations).
-3. **AI Analysis (RAG):** The Google Gemini 2.5 Flash model analyzes the survey and the PDF. It calculates BMR, macronutrient distribution, programs weekly mileage with safe progression (max 10% per week), and accounts for tapering phases.
+The entire workflow is fully automated and integrated with Google Workspace:
+
+1. **Trigger:** The athlete fills out a Google Form (weight, age, experience, availability, goal, injuries). A new row enters Google Sheets.
+2. **Knowledge Base Retrieval:** The n8n node immediately connects to Google Drive and retrieves a PDF manual (coach's knowledge: training methodology + dietary foundations).
+3. **AI Analysis (RAG):** The Google Gemini 2.5 Flash model analyzes the survey and the PDF. It calculates BMR, macronutrient distribution, programs weekly mileage with safe progression (max 10% per week), and structures the macrocycle.
 4. **Data Sanitization (JS):** A JavaScript snippet catches and cleans the raw AI response into a clean JSON format (Array of Objects).
-5. **Sheet Update:** n8n automatically creates a new tab in the target Google Sheet and pastes the complete, e.g., 98-day plan, day by day.
+5. **Sheet Update:** n8n automatically creates a new tab in the target Google Sheet and pastes the ready plan, day by day.
+
+---
+
+## 🛠️ Maintenance Documentation
+
+In accordance with best practices for maintaining automation systems, below are the instructions for managing the project:
+
+### 1. How to add a new document / data to the system
+To update the knowledge base (e.g., new training methodology, updated dietary guidelines):
+* **Option A (Recommended):** Overwrite the existing PDF file on your Google Drive (use the "Manage versions" option and upload the new file). This keeps the File ID unchanged, ensuring the system runs smoothly without further edits.
+* **Option B:** Upload a new file to Google Drive, copy its new "File ID" from the sharing link, and paste it into the `Google Drive (Download file)` node in the n8n panel.
+
+### 2. How to change the configuration (prompt, model, sources)
+All logic modifications take place directly within the n8n environment:
+* **Changing the Prompt (AI Instructions):** Open the `Google Gemini Chat Model` node. Go to the `System Message` or `Message` field to modify plan calculation rules, mileage limits, or response language.
+* **Changing the Model:** In the same `Google Gemini` node, under the "Model" section, you can select a different version from the dropdown (currently optimized for `gemini-2.5-flash`, which guarantees the best speed-to-quality ratio; if deeper analysis is needed, higher-tier Gemini models can be tested).
+* **Changing Sources:** To change the input/output sheets, go into the respective `Google Sheets` nodes and select the new files from your connected Google Drive.
+
+### 3. Troubleshooting (What to do when something breaks)
+* **Problem: New surveys do not trigger the automation.**
+  * *Solution:* Check the `Google Sheets Trigger` node. Ensure your Google Credential hasn't expired. Re-authenticate if necessary.
+* **Problem: Parsing error in the JavaScript node (JSON error).**
+  * *Solution:* The AI model generated a response in the wrong format (formatting hallucination). Ensure the "Retry On Fail" option is enabled in the Gemini node settings. Check the execution logs to see if the prompt is too restrictive.
+* **Problem: API 503 Error (Overload / Rate Limit).**
+  * *Solution:* Google Gemini servers rejected the request due to high load on a free API key. The system should automatically retry if the Retry mechanism is enabled. If scaling up, consider switching to a Pay-as-you-go plan.
+
+### 4. System Owner & Contact
+* **System Owner / Main Architect:** Michał Derda
+* **Support Contact:** michal.derda11@interia.pl
+* In the event of critical failures or a desire to implement new features (e.g., external system integrations), please contact me directly via the channels above.
+
+### 5. Limitations and Known Issues
+* **LLM Math Hallucinations:** Language models are not calculators. Despite rigorous prompts and the efficiency of the Gemini 2.5 Flash model, for very long plans, the AI might occasionally make a mistake when summing up weekly mileage. This requires periodic, quick verification of the generated spreadsheet by the coach.
+* **Lack of Advanced Pace Calculations:** The current version operates mainly on volume (mileage and time). Precise target-pace workouts (e.g., calculating threshold paces or intervals based on personal bests) are planned for future updates.
+
+---
 
 ## 🚀 Setup Guide (Step-by-Step)
 ## Option 1: I want a training plan (For runners)
